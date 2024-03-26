@@ -3,25 +3,38 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
 }
 
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  posts Post[]
+model author {
+  id        BigInt  @id @default(autoincrement())
+  firstname String? @db.String(255)
+  lastname  String? @db.String(255)
+  country   String? @db.String(255)
+  books     books[]
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  viewCount Int      @default(0)
-  author    User?    @relation(fields: [authorId], references: [id])
-  authorId  Int?
+model book_genre {
+  book_id  BigInt
+  genre_id BigInt
+  books    books  @relation(fields: [book_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  genre    genre  @relation(fields: [genre_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([book_id, genre_id])
+}
+
+model books {
+  id          BigInt       @id @default(autoincrement())
+  title       String?      @db.String(255)
+  description String?
+  author_id   BigInt?
+  book_genre  book_genre[]
+  author      author?      @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "author_id_fkey")
+}
+
+model genre {
+  id         BigInt       @id @default(autoincrement())
+  label      String?      @db.String(255)
+  book_genre book_genre[]
 }

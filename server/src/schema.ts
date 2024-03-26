@@ -1,257 +1,177 @@
-import { createSchema } from 'graphql-yoga'
-import { DateTimeResolver } from 'graphql-scalars'
-import { Context } from './context'
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import { context } from './context'
 
 export const typeDefs = `
-  type Mutation {
-    createDraft(authorEmail: String!, data: PostCreateInput!): Post
-    deletePost(id: Int!): Post
-    incrementPostViewCount(id: Int!): Post
-    signupUser(data: UserCreateInput!): User!
-    togglePublishPost(id: Int!): Post
+  type Author {
+    id: String!
+    firstname: String
+    lastname: String
+    country: String
+    books: [Book]
+  }
+ 
+  type Book {
+    id: String
+    title: String
+    description: String
+    author: Author
+    genres: [Genre]
   }
 
-  type Post {
-    author: User
-    content: String
-    createdAt: DateTime!
-    id: Int!
-    published: Boolean!
-    title: String!
-    updatedAt: DateTime!
-    viewCount: Int!
+  type Genre {
+    id: String
+    label: String
+    books: [Book]
   }
-
-  input PostCreateInput {
-    content: String
-    title: String!
-  }
-
-  input PostOrderByUpdatedAtInput {
-    updatedAt: SortOrder!
-  }
-
+ 
+  # the schema allows the following query:
   type Query {
-    allUsers: [User!]!
-    draftsByUser(userUniqueInput: UserUniqueInput!): [Post]
-    feed(
-      orderBy: PostOrderByUpdatedAtInput
-      searchString: String
-      skip: Int
-      take: Int
-    ): [Post!]!
-    postById(id: Int): Post
+    books: [Book]
+    authors: [Author]
+    genres: [Genre]
+    author(id: String!): Author
+    book(id: String!): Book
+    genre(id: String!): Genre
+  }
+ 
+  # this schema allows the following mutation:
+  type Mutation {
+    createBook(title: String!, description: String, authorid: String!, genreIds: [String!]): Book
+    createAuthor(firstname: String, lastname: String, country: String): Author
+    createGenre(label: String): Genre
+    deleteBook(id: String!): Book
+    deleteAuthor(id: String!): Author
+    deleteGenre(id: String!): Genre
+    addBookToGenre(bookid: String!, genreId: String!): BookGenre
   }
 
-  enum SortOrder {
-    asc
-    desc
+  type BookGenre {
+    book: Book
+    genre: Genre
   }
-
-  type User {
-    email: String!
-    id: Int!
-    name: String
-    posts: [Post!]!
-  }
-
-  input UserCreateInput {
-    email: String!
-    name: String
-    posts: [PostCreateInput!]
-  }
-
-  input UserUniqueInput {
-    email: String
-    id: Int
-  }
-
-  scalar DateTime
 `
 
 export const resolvers = {
   Query: {
-    allUsers: (_parent, _args, context: Context) => {
-      return context.prisma.user.findMany()
+    authors: async () => {
+      return context.prisma.author.findMany();
     },
-    postById: (_parent, args: { id: number }, context: Context) => {
-      return context.prisma.post.findUnique({
-        where: { id: args.id || undefined },
-      })
+    books: async () => {
+      return context.prisma.books.findMany();
     },
-    feed: (
-      _parent,
-      args: {
-        searchString: string
-        skip: number
-        take: number
-        orderBy: PostOrderByUpdatedAtInput
-      },
-      context: Context,
-    ) => {
-      const or = args.searchString
-        ? {
-            OR: [
-              { title: { contains: args.searchString } },
-              { content: { contains: args.searchString } },
-            ],
-          }
-        : {}
-
-      return context.prisma.post.findMany({
-        where: {
-          published: true,
-          ...or,
-        },
-        take: args?.take,
-        skip: args?.skip,
-        orderBy: args?.orderBy,
-      })
+    genres: async () => {
+      return context.prisma.genre.findMany();
     },
-    draftsByUser: (
-      _parent,
-      args: { userUniqueInput: UserUniqueInput },
-      context: Context,
-    ) => {
-      return context.prisma.user
-        .findUnique({
-          where: {
-            id: args.userUniqueInput.id || undefined,
-            email: args.userUniqueInput.email || undefined,
-          },
-        })
-        .posts({
-          where: {
-            published: false,
-          },
-        })
+    author: async (_: any, { id }: any) => {
+        return context.prisma.author.findUnique({
+            where: { id },
+        });
+    },
+    book: async (_: any, { id }: any) => {
+      return context.prisma.books.findUnique({
+        where: { id },
+      });
+    },
+    genre: async (_: any, { id }: any) => {
+      return context.prisma.genre.findUnique({
+        where: { id },
+      });
     },
   },
+
   Mutation: {
-    signupUser: (
-      _parent,
-      args: { data: UserCreateInput },
-      context: Context,
-    ) => {
-      const postData = args.data.posts?.map((post) => {
-        return { title: post.title, content: post.content || undefined }
-      })
-
-      return context.prisma.user.create({
+    createAuthor: async (_: any, { firstname, lastname, country }: any) => {
+        return context.prisma.author.create({
+            data: {
+                firstname,
+                lastname,
+                country,
+            },
+        });
+    },
+    createBook: async (_: any, { title, description, authorId, genreIds }: any) => {
+      return context.prisma.books.create({
         data: {
-          name: args.data.name,
-          email: args.data.email,
-          posts: {
-            create: postData,
-          },
+          title,
+          description,
+          author: { connect: { id: Number(authorId) } },
+          book_genre: { connect: genreIds.map((id: any) => ({ id })) },
         },
-      })
+      });
     },
-    createDraft: (
-      _parent,
-      args: { data: PostCreateInput; authorEmail: string },
-      context: Context,
-    ) => {
-      return context.prisma.post.create({
+    createGenre: async (_: any, { label }: any) => {
+      return context.prisma.genre.create({
         data: {
-          title: args.data.title,
-          content: args.data.content,
-          author: {
-            connect: { email: args.authorEmail },
-          },
+          label,
         },
-      })
+      });
     },
-    togglePublishPost: async (
-      _parent,
-      args: { id: number },
-      context: Context,
-    ) => {
-      try {
-        const post = await context.prisma.post.findUnique({
-          where: { id: args.id || undefined },
-          select: {
-            published: true,
-          },
-        })
-
-        return context.prisma.post.update({
-          where: { id: args.id || undefined },
-          data: { published: !post?.published },
-        })
-      } catch (error) {
-        throw new Error(
-          `Post with ID ${args.id} does not exist in the database.`,
-        )
-      }
+    deleteAuthor: async (_: any, { id }: any) => {
+      return context.prisma.author.delete({
+        where: { id },
+      });
     },
-    incrementPostViewCount: (
-      _parent,
-      args: { id: number },
-      context: Context,
-    ) => {
-      return context.prisma.post.update({
-        where: { id: args.id || undefined },
+    deleteBook: async (_: any, { id }: any) => {
+      return context.prisma.books.delete({
+        where: { id },
+      });
+    },
+    deleteGenre: async (_: any, { id }: any) => {
+      return context.prisma.genre.delete({
+        where: { id },
+      });
+    },
+    addBookToGenre: async (_: any, { bookId, genreId }: any) => {
+      return context.prisma.book_genre.create({
         data: {
-          viewCount: {
-            increment: 1,
-          },
+          books: { connect: { id: bookId } },
+          genre: { connect: { id: genreId } },
         },
-      })
-    },
-    deletePost: (_parent, args: { id: number }, context: Context) => {
-      return context.prisma.post.delete({
-        where: { id: args.id },
-      })
+      });
     },
   },
-  DateTime: DateTimeResolver,
-  Post: {
-    author: (parent, _args, context: Context) => {
-      return context.prisma.post
-        .findUnique({
-          where: { id: parent?.id },
-        })
-        .author()
+  Author: {
+    books: async (parent: { id: any; }) => {
+      return context.prisma.books.findMany({
+        where: {
+          author_id: parent.id,
+        },
+      });
     },
   },
-  User: {
-    posts: (parent, _args, context: Context) => {
-      return context.prisma.user
-        .findUnique({
-          where: { id: parent?.id },
+  Book: {
+    author: async (parent: { authorId: any; }) => {
+      return context.prisma.author.findUnique({
+        where: { id: parent.authorId },
+      });
+    },
+    genres: async (parent: { id: any; }) => {
+      return context.prisma.book_genre
+        .findMany({
+          where: { book_id: parent.id },
         })
-        .posts()
+        .then((bookGenres: any[]) => {
+          const genreIds = bookGenres.map((bg: { genre_id: any; }) => bg.genre_id);
+          return context.prisma.genre.findMany({
+            where: { id: { in: genreIds } },
+          });
+        });
     },
   },
-}
+  Genre: {
+    books: async (parent: { id: any; }) => {
+      return context.prisma.book_genre
+        .findMany({
+          where: { genre_id: parent.id },
+        })
+        .then((bookGenres: any[]) => {
+          const bookIds = bookGenres.map((bg: { book_id: any; }) => bg.book_id);
+          return context.prisma.books.findMany({
+            where: { id: { in: bookIds } },
+          });
+        });
+    },
+  },
+};
 
-enum SortOrder {
-  asc = 'asc',
-  desc = 'desc',
-}
-
-interface PostOrderByUpdatedAtInput {
-  updatedAt: SortOrder
-}
-
-interface UserUniqueInput {
-  id?: number
-  email?: string
-}
-
-interface PostCreateInput {
-  title: string
-  content?: string
-}
-
-interface UserCreateInput {
-  email: string
-  name?: string
-  posts?: PostCreateInput[]
-}
-
-export const schema = createSchema({
-  typeDefs,
-  resolvers,
-})
+export const schema = makeExecutableSchema({ typeDefs, resolvers });
