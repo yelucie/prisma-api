@@ -8,7 +8,7 @@ datasource db {
 }
 
 model author {
-  id        BigInt  @id @default(autoincrement())
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   firstname String? @db.String(255)
   lastname  String? @db.String(255)
   country   String? @db.String(255)
@@ -16,8 +16,8 @@ model author {
 }
 
 model book_genre {
-  book_id  BigInt
-  genre_id BigInt
+  book_id  String @db.Uuid
+  genre_id String @db.Uuid
   books    books  @relation(fields: [book_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   genre    genre  @relation(fields: [genre_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
@@ -25,16 +25,16 @@ model book_genre {
 }
 
 model books {
-  id          BigInt       @id @default(autoincrement())
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   title       String?      @db.String(255)
   description String?
-  author_id   BigInt?
+  author_id   String?      @db.Uuid
   book_genre  book_genre[]
   author      author?      @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "author_id_fkey")
 }
 
 model genre {
-  id         BigInt       @id @default(autoincrement())
+  id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   label      String?      @db.String(255)
   book_genre book_genre[]
 }

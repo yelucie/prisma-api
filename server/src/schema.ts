@@ -3,7 +3,7 @@ import { context } from './context'
 
 export const typeDefs = `
   type Author {
-    id: String!
+    id: ID!
     firstname: String
     lastname: String
     country: String
@@ -11,7 +11,7 @@ export const typeDefs = `
   }
  
   type Book {
-    id: String
+    id: ID!
     title: String
     description: String
     author: Author
@@ -19,7 +19,7 @@ export const typeDefs = `
   }
 
   type Genre {
-    id: String
+    id: ID!
     label: String
     books: [Book]
   }
@@ -29,20 +29,20 @@ export const typeDefs = `
     books: [Book]
     authors: [Author]
     genres: [Genre]
-    author(id: String!): Author
-    book(id: String!): Book
-    genre(id: String!): Genre
+    author(id: ID!): Author
+    book(id: ID!): Book
+    genre(id: ID!): Genre
   }
  
   # this schema allows the following mutation:
   type Mutation {
-    createBook(title: String!, description: String, authorid: String!, genreIds: [String!]): Book
+    createBook(title: String!, description: String, authorid: ID!, genreIds: [ID!]): Book
     createAuthor(firstname: String, lastname: String, country: String): Author
     createGenre(label: String): Genre
-    deleteBook(id: String!): Book
-    deleteAuthor(id: String!): Author
-    deleteGenre(id: String!): Genre
-    addBookToGenre(bookid: String!, genreId: String!): BookGenre
+    deleteBook(id: ID!): Book
+    deleteAuthor(id: ID!): Author
+    deleteGenre(id: ID!): Genre
+    addBookToGenre(bookid: ID!, genreId: ID!): BookGenre
   }
 
   type BookGenre {
@@ -94,7 +94,7 @@ export const resolvers = {
         data: {
           title,
           description,
-          author: { connect: { id: Number(authorId) } },
+          author: { connect: { id: authorId } },
           book_genre: { connect: genreIds.map((id: any) => ({ id })) },
         },
       });

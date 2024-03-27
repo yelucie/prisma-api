@@ -13,6 +13,7 @@
     "dotenv": "^16.4.5",
     "graphql": "16.8.1",
     "graphql-scalars": "1.22.5",
+    "graphql-type-ints": "^1.0.2",
     "graphql-yoga": "5.1.1"
   },
   "devDependencies": {
