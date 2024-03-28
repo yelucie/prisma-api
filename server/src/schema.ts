@@ -14,7 +14,7 @@ export const typeDefs = `
     id: ID!
     title: String
     description: String
-    author: Author
+    authors: [Author]
     genres: [Genre]
   }
 
@@ -23,18 +23,30 @@ export const typeDefs = `
     label: String
     books: [Book]
   }
+
+  type BookGenre {
+    book: [Book]
+    genre: [Genre]
+  }
+
+  type BookAuthor {
+    book: [Book]
+    author: [Author]
+  }
  
-  # the schema allows the following query:
   type Query {
     books: [Book]
     authors: [Author]
     genres: [Genre]
+    book_genres: [BookGenre]
+    book_authors: [BookAuthor]
     author(id: ID!): Author
     book(id: ID!): Book
     genre(id: ID!): Genre
+    book_genre(book_id: ID!, genre_id: ID!): BookGenre
+    book_author(book_id: ID!, author_id: ID!): BookAuthor
   }
  
-  # this schema allows the following mutation:
   type Mutation {
     createBook(title: String!, description: String): Book
     createAuthor(firstname: String, lastname: String, country: String): Author
@@ -42,15 +54,9 @@ export const typeDefs = `
     deleteBook(id: ID!): Book
     deleteAuthor(id: ID!): Author
     deleteGenre(id: ID!): Genre
-    addBookToGenre(bookid: ID!, genreId: ID!): BookGenre
     updateBook(id: ID!, title: String, description: String): Book
     updateAuthor(id: ID!, firstname: String, lastname: String, country: String): Author
     updateGenre(id: ID!, label: String): Genre
-  }
-
-  type BookGenre {
-    book: Book
-    genre: Genre
   }
 `
 
@@ -60,18 +66,18 @@ export const resolvers = {
       return context.prisma.author.findMany();
     },
     books: async () => {
-      return context.prisma.books.findMany();
+      return context.prisma.book.findMany();
     },
     genres: async () => {
       return context.prisma.genre.findMany();
     },
     author: async (_: any, { id }: any) => {
-        return context.prisma.author.findUnique({
-            where: { id },
-        });
+      return context.prisma.author.findUnique({
+        where: { id },
+      });
     },
     book: async (_: any, { id }: any) => {
-      return context.prisma.books.findUnique({
+      return context.prisma.book.findUnique({
         where: { id },
       });
     },
@@ -80,20 +86,36 @@ export const resolvers = {
         where: { id },
       });
     },
+    book_genres: async () => {
+      return context.prisma.book_genre.findMany({
+        include: {
+          book: {},
+          genre: {},
+        }
+      });
+    },
+    book_authors: async () => {
+      return context.prisma.book_author.findMany({
+        include: {
+          book: {},
+          author: {},
+        }
+      });
+    },
   },
 
   Mutation: {
     createAuthor: async (_: any, { firstname, lastname, country }: any) => {
-        return context.prisma.author.create({
-            data: {
-                firstname,
-                lastname,
-                country,
-            },
-        });
+      return context.prisma.author.create({
+        data: {
+          firstname,
+          lastname,
+          country,
+        },
+      });
     },
     createBook: async (_: any, { title, description }: any) => {
-      return context.prisma.books.create({
+      return context.prisma.book.create({
         data: {
           title,
           description,
@@ -113,7 +135,7 @@ export const resolvers = {
       });
     },
     deleteBook: async (_: any, { id }: any) => {
-      return context.prisma.books.delete({
+      return context.prisma.book.delete({
         where: { id },
       });
     },
@@ -122,16 +144,8 @@ export const resolvers = {
         where: { id },
       });
     },
-    addBookToGenre: async (_: any, { bookId, genreId }: any) => {
-      return context.prisma.book_genre.create({
-        data: {
-          books: { connect: { id: bookId } },
-          genre: { connect: { id: genreId } },
-        },
-      });
-    },
     updateBook: async (_: any, { id, title, description }: any) => {
-      return context.prisma.books.update({
+      return context.prisma.book.update({
         where: { id },
         data: {
           title,
@@ -160,18 +174,29 @@ export const resolvers = {
   },
   Author: {
     books: async (parent: { id: any; }) => {
-      return context.prisma.books.findMany({
-        where: {
-          author_id: parent.id,
-        },
-      });
+      return context.prisma.book_author.findMany({
+        where: { author_id: parent.id },
+      })
+        .then((bookAuthors: any[]) => {
+          const bookIds = bookAuthors.map((ba: { book_id: any; }) => ba.book_id);
+          return context.prisma.book.findMany({
+            where: { id: { in: bookIds } },
+          });
+        });
     },
   },
   Book: {
-    author: async (parent: { authorId: any; }) => {
-      return context.prisma.author.findUnique({
-        where: { id: parent.authorId },
-      });
+    authors: async (parent: { id: any; }) => {
+      return context.prisma.book_author
+        .findMany({
+          where: { book_id: parent.id },
+        })
+        .then((bookAuthors: any[]) => {
+          const authorIds = bookAuthors.map((ba: { author_id: any; }) => ba.author_id);
+          return context.prisma.author.findMany({
+            where: { id: { in: authorIds } },
+          });
+        });
     },
     genres: async (parent: { id: any; }) => {
       return context.prisma.book_genre
@@ -185,6 +210,7 @@ export const resolvers = {
           });
         });
     },
+
   },
   Genre: {
     books: async (parent: { id: any; }) => {
@@ -194,7 +220,7 @@ export const resolvers = {
         })
         .then((bookGenres: any[]) => {
           const bookIds = bookGenres.map((bg: { book_id: any; }) => bg.book_id);
-          return context.prisma.books.findMany({
+          return context.prisma.book.findMany({
             where: { id: { in: bookIds } },
           });
         });

@@ -8,29 +8,37 @@ datasource db {
 }
 
 model author {
-  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  firstname String? @db.String(255)
-  lastname  String? @db.String(255)
-  country   String? @db.String(255)
-  books     books[]
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  firstname   String?       @db.String(255)
+  lastname    String?       @db.String(255)
+  country     String?       @db.String(255)
+  book_author book_author[]
+}
+
+model book {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String        @db.String(255)
+  description String?       @db.String(255)
+  book_author book_author[]
+  book_genre  book_genre[]
+}
+
+model book_author {
+  book_id   String @db.Uuid
+  author_id String @db.Uuid
+  author    author @relation(fields: [author_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "book_author_author_fk")
+  book      book   @relation(fields: [book_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "book_author_book_fk")
+
+  @@id([book_id, author_id], map: "book_author_pk")
 }
 
 model book_genre {
   book_id  String @db.Uuid
   genre_id String @db.Uuid
-  books    books  @relation(fields: [book_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  genre    genre  @relation(fields: [genre_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  book     book   @relation(fields: [book_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "book_genre_book_fk")
+  genre    genre  @relation(fields: [genre_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "book_genre_genre_fk")
 
-  @@id([book_id, genre_id])
-}
-
-model books {
-  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title       String?      @db.String(255)
-  description String?
-  author_id   String?      @db.Uuid
-  book_genre  book_genre[]
-  author      author?      @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "author_id_fkey")
+  @@id([book_id, genre_id], map: "book_genre_pk")
 }
 
 model genre {
