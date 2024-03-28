@@ -19,6 +19,13 @@ const findByIdQuery = (id) => `
       id,
       title,
       description
+      authors {
+        firstname
+        lastname
+      }
+      genres {
+          label
+      }
     }
   }
 `;
@@ -97,7 +104,6 @@ const api = {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
-      console.log(data);
       return data.data.createBook;
     } catch (error) {
       throw error;

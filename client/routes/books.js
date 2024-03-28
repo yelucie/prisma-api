@@ -32,7 +32,20 @@ router.post("/add",
 /* GET a single book. */
 router.get("/:uuid", async function (req, res, next) {
   await api.findById(req.params.uuid).then((data) => {
-    res.render("book", { title: `${data.title}`, book: data });
+    var author = "N/A";
+    var genres = [];
+
+    // Check if the book has an author
+    if(data.authors.length !== 0) {
+      author = data.authors[0].firstname + " " + data.authors[0].lastname;
+    }
+    
+    // Check if the book has a genre
+    if(data.genres.length !== 0) {
+      genres = data.genres;
+    }
+
+    res.render("book", { title: `${data.title}`, book: data, author: author, genres: genres});
   });
 });
 
