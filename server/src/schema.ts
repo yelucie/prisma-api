@@ -36,13 +36,16 @@ export const typeDefs = `
  
   # this schema allows the following mutation:
   type Mutation {
-    createBook(title: String!, description: String, authorid: ID!, genreIds: [ID!]): Book
+    createBook(title: String!, description: String): Book
     createAuthor(firstname: String, lastname: String, country: String): Author
     createGenre(label: String): Genre
     deleteBook(id: ID!): Book
     deleteAuthor(id: ID!): Author
     deleteGenre(id: ID!): Genre
     addBookToGenre(bookid: ID!, genreId: ID!): BookGenre
+    updateBook(id: ID!, title: String, description: String): Book
+    updateAuthor(id: ID!, firstname: String, lastname: String, country: String): Author
+    updateGenre(id: ID!, label: String): Genre
   }
 
   type BookGenre {
@@ -89,13 +92,11 @@ export const resolvers = {
             },
         });
     },
-    createBook: async (_: any, { title, description, authorId, genreIds }: any) => {
+    createBook: async (_: any, { title, description }: any) => {
       return context.prisma.books.create({
         data: {
           title,
           description,
-          author: { connect: { id: authorId } },
-          book_genre: { connect: genreIds.map((id: any) => ({ id })) },
         },
       });
     },
@@ -126,6 +127,33 @@ export const resolvers = {
         data: {
           books: { connect: { id: bookId } },
           genre: { connect: { id: genreId } },
+        },
+      });
+    },
+    updateBook: async (_: any, { id, title, description }: any) => {
+      return context.prisma.books.update({
+        where: { id },
+        data: {
+          title,
+          description,
+        },
+      });
+    },
+    updateAuthor: async (_: any, { id, firstname, lastname, country }: any) => {
+      return context.prisma.author.update({
+        where: { id },
+        data: {
+          firstname,
+          lastname,
+          country,
+        },
+      });
+    },
+    updateGenre: async (_: any, { id, label }: any) => {
+      return context.prisma.genre.update({
+        where: { id },
+        data: {
+          label,
         },
       });
     },

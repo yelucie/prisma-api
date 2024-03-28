@@ -4,51 +4,56 @@ dotenv.config();
 const graphqlEndpoint = process.env.GRAPHQL_ENDPOINT;
 
 const findAllQuery = `
-  query Books {
-    books {
-      id,
-      title,
-      description,
-    }
+query Authors {
+  authors {
+    id
+    firstname
+    lastname
+    country
   }
+}
 `;
 
 const findByIdQuery = (id) => `
-  query{
-    book(id:"${id}"){
-      id,
-      title,
-      description
-    }
+query{
+  author(id:"${id}"){
+    id,
+    firstname
+    lastname
+    country
   }
+}
 `;
 
-const createQuery = (book) => `
-mutation CreateBook {
-  createBook(title: "${book.title}", description: "${book.description}") {
+const createQuery = (author) => `
+mutation CreateAuthor {
+  createAuthor(firstname: "${author.firstname}", lastname: "${author.lastname}", country: "${author.country}") {
     id,
-    title,
-    description
+    firstname
+    lastname
+    country
   }
 }
 `;
 
 const deleteByIdQuery = (id) => `
-mutation DeleteBook {
-  deleteBook(id: "${id}"){
+mutation DeleteAuthor {
+  deleteAuthor(id: "${id}"){
     id,
-    title,
-    description
+    firstname
+    lastname
+    country
   }
 }
 `;
 
-const updateQuery = (book) => `
-mutation UpdateBook {
-  updateBook(id: "${book.id}", title: "${book.title}", description: "${book.description}") {
+const updateQuery = (author) => `
+mutation UpdateAuthor {
+  updateAuthor(id: "${author.id}", firstname: "${author.firstname}", lastname: "${author.lastname}", country: "${author.country}") {
     id,
-    title,
-    description
+    firstname
+    lastname
+    country
   }
 }
 `;
@@ -70,35 +75,37 @@ const api = {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
-      return data.data.books;
+      return data.data.authors;
     } catch (error) {
       throw error;
     }
   },
   findById: async (id) => {
     try {
-      const response = await fetch(graphqlEndpoint, requestOptions(findByIdQuery(id)));
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      const data = await response.json();
-      return data.data.book;
-    } catch (error) {
-      throw error;
-    }
-  },
-  create: async (book) => {
-    try {
       const response = await fetch(
         graphqlEndpoint,
-        requestOptions(createQuery(book))
+        requestOptions(findByIdQuery(id))
       );
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
-      console.log(data);
-      return data.data.createBook;
+      return data.data.author;
+    } catch (error) {
+      throw error;
+    }
+  },
+  create: async (author) => {
+    try {
+      const response = await fetch(
+        graphqlEndpoint,
+        requestOptions(createQuery(author))
+      );
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data = await response.json();
+      return data.data.createAuthor;
     } catch (error) {
       throw error;
     }
@@ -116,17 +123,17 @@ const api = {
       throw error;
     }
   },
-  update: async (book) => {
+  update: async (author) => {
     try {
       const response = await fetch(
         graphqlEndpoint,
-        requestOptions(updateQuery(book))
+        requestOptions(updateQuery(author))
       );
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
-      return data.data.updateBook;
+      return data.data.updateAuthor;
     } catch (error) {
       throw error;
     }

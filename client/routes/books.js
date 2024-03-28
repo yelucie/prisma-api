@@ -1,11 +1,11 @@
 var express = require("express");
 var router = express.Router();
+var { body, validationResult } = require("express-validator");
 var api = require("../api/books");
 
 /* GET list of books. */
 router.get("/", async function (req, res, next) {
   await api.findAll().then((data) => {
-    console.log(data);
     res.render("books", { title: "List of books", books: data });
   });
 });
@@ -15,39 +15,53 @@ router.get("/add", function (req, res, next) {
   res.render("books_input", { title: "Add a new book" });
 });
 
-/* GET a single book. */
-router.get("/:uuid", function (req, res, next) {
-  const book = api.findById(req.params.uuid);
-
-  if (book) {
-    res.render("book", {
-      title: `${book.title}`,
-      book: book,
-    });
+/* POST form to add a book. */
+router.post("/add",
+  body("title").trim(),
+  body("description").trim(),
+  function (req, res, next) {
+    var newBook = {
+      title: req.body.title,
+      description: req.body.description,
+    };
+    api.create(newBook);
+    res.redirect("/books");
   }
+);
+
+/* GET a single book. */
+router.get("/:uuid", async function (req, res, next) {
+  await api.findById(req.params.uuid).then((data) => {
+    res.render("book", { title: `${data.title}`, book: data });
+  });
 });
 
-/* GET book delete */
-router.get("/:uuid/delete", function (req, res, next) {
-  repo.deleteById(req.params.uuid);
+/* DELETE book */
+router.get("/:uuid/delete", async function (req, res, next) {
+  await api.deleteById(req.params.uuid);
   res.redirect("/books");
 });
 
 /* GET book edit */
-router.get("/:uuid/edit", function (req, res, next) {
-  // const book = repo.findById(req.params.uuid);
-  const book = {
-    id: "1",
-    title: "The Catcher in the Rye",
-    description: "blabla",
+router.get("/:uuid/edit", async function (req, res, next) {
+  await api.findById(req.params.uuid).then((data) => {
+    res.render("books_input", { title: `${data.title}`, book: data });
+  });
+});
+
+/* POST book edit */
+router.post("/:uuid/edit",
+  body("title").trim(),
+  body("description").trim(),
+  async function (req, res, next) {
+  const updatedBook = {
+    id: req.params.uuid,
+    title: req.body.title,
+    description: req.body.description
   };
 
-  if (book) {
-    res.render("books_input", {
-      title: `Edit ${book.title}`,
-      book: book,
-    });
-  }
+  await api.update(updatedBook);
+  res.redirect("/books");
 });
 
 module.exports = router;

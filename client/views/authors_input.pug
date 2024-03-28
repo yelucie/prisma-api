@@ -1,0 +1,84 @@
+extends layout
+
+block content
+  div(class='px-6 py-24 bg-white isolate sm:py-32 lg:px-8')
+    div(class='max-w-2xl mx-auto text-center')
+      h2(class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl")
+        if author
+          | #{author.firstname} #{author.lastname}
+        else
+          | Add a new author
+    form(method='POST' action= author ? `/authors/${author.id}/edit` : '/authors/add' class='max-w-xl mx-auto mt-16 sm:mt-20')
+      div(class='grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2')
+        div(class='sm:col-span-2')
+          label(for='firstname' class="block text-sm font-semibold leading-6 text-gray-900") Firstname
+          div(class='mt-2.5')
+            input(type='text' name='firstname' placeholder= author ? "" : 'Firstname' value= author ? author.firstname : "" required class='block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6')
+        div(class='sm:col-span-2')
+          label(for='firstname' class="block text-sm font-semibold leading-6 text-gray-900") Lastname
+          div(class='mt-2.5')
+            input(type='text' name='lastname' placeholder= author ? "" : 'Lastname' value= author ? author.lastname : "" required class='block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6')
+        div(class='sm:col-span-2')
+          label(for="country", class="block text-sm font-medium leading-6 text-gray-900") Country
+          select#location(name="country" class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6")
+            option Albania
+            option Algeria
+            option Argentina
+            option Australia
+            option Austria
+            option Bangladesh
+            option Belgium
+            option Brazil
+            option Canada
+            option China
+            option Colombia
+            option Czech Republic
+            option Denmark
+            option Egypt
+            option Finland
+            option France
+            option Germany
+            option Greece
+            option Hungary
+            option India
+            option Indonesia
+            option Iran
+            option Iraq
+            option Ireland
+            option Israel
+            option Italy
+            option Japan
+            option Mexico
+            option Netherlands
+            option New Zealand
+            option Nigeria
+            option Norway
+            option Pakistan
+            option Philippines
+            option Poland
+            option Portugal
+            option Romania
+            option Russia
+            option Saudi Arabia
+            option Singapore
+            option South Africa
+            option South Korea
+            option Spain
+            option Sweden
+            option Switzerland
+            option Taiwan
+            option Thailand
+            option Turkey
+            option Ukraine
+            option United Arab Emirates
+            option United Kingdom
+            option(selected) United States
+            option Vietnam
+      div(class='mt-10')
+        button(type='submit' class='block w-full rounded-md bg-indigo-600 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600') 
+          if author
+            | Edit the author
+          else
+            | Add
+  footer(class="bottom-0 w-full px-6 pt-8 pb-8 mx-auto border-t border-gray-900/10 max-w-7xl lg:px-8")
+      p(class="text-xs leading-5 text-gray-500") Website by Lucie YE for ITMD544 at Illinois Tech during Spring 2024
