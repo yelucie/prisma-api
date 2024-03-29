@@ -16,7 +16,11 @@ block content
               dd(class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0") #{book.description}
             div(class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0")
               dt(class="text-sm font-medium leading-6 text-gray-900") Author 
-              dd(class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0") #{author}
+              dd(class="relative flex items-center mt-1 space-x-4 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0")
+                div(class="flex-auto min-w-0") #{author.firstname} #{author.lastname}
+                a(href=`/authors/${author.id}` class="flex-none w-5 h-5 text-gray-400")
+                  svg(viewBox="0 0 20 20" fill="currentColor" aria-hidden="true")
+                    path(fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd")
             div(class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0")
               dt(class="text-sm font-medium leading-6 text-gray-900") Genre
               dd(class="flex flex-wrap mt-1 text-sm leading-6 text-gray-700 gap-x-4 gap-y-4 sm:col-span-2 sm:mt-0")
@@ -24,8 +28,9 @@ block content
                   | N/A
                 else
                   each item in genres
-                    span(class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-md")
-                      | #{item.label}
+                    a(href=`/genres/${item.id}`)
+                      span(class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-md")
+                        | #{item.label}
         div(class="flex justify-end flex-shrink-0 mt-10")
           button(type="button" class="inline-flex items-center px-3 py-2 text-sm font-semibold text-gray-900 bg-white rounded-md shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50")
             a(href=`/books/${book.id}/edit`) Edit

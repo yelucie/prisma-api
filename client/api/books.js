@@ -20,11 +20,13 @@ const findByIdQuery = (id) => `
       title,
       description
       authors {
+        id
         firstname
         lastname
       }
       genres {
-          label
+        id
+        label
       }
     }
   }

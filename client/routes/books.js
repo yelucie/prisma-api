@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 var { body, validationResult } = require("express-validator");
 var api = require("../api/books");
+var authorsApi = require("../api/authors");
 
 /* GET list of books. */
 router.get("/", async function (req, res, next) {
@@ -11,21 +12,25 @@ router.get("/", async function (req, res, next) {
 });
 
 /* GET form to add a book. */
-router.get("/add", function (req, res, next) {
-  res.render("books_input", { title: "Add a new book" });
+router.get("/add", async function (req, res, next) {
+  await authorsApi.findAll().then((data) => {
+    res.render("books_input", { title: "Add a new book", authors: data });
+  });
 });
 
 /* POST form to add a book. */
 router.post("/add",
   body("title").trim(),
   body("description").trim(),
-  function (req, res, next) {
+  async function (req, res, next) {
     var newBook = {
       title: req.body.title,
       description: req.body.description,
     };
-    api.create(newBook);
-    res.redirect("/books");
+
+    await api.create(newBook).then(() => {
+      res.redirect("/books");
+    });
   }
 );
 
@@ -37,10 +42,10 @@ router.get("/:uuid", async function (req, res, next) {
 
     // Check if the book has an author
     if(data.authors.length !== 0) {
-      author = data.authors[0].firstname + " " + data.authors[0].lastname;
+      author = data.authors[0];
     }
     
-    // Check if the book has a genre
+    // Check if the book has genres
     if(data.genres.length !== 0) {
       genres = data.genres;
     }
@@ -73,8 +78,9 @@ router.post("/:uuid/edit",
     description: req.body.description
   };
 
-  await api.update(updatedBook);
-  res.redirect("/books");
+  await api.update(updatedBook).then(() => {
+    res.redirect("/books");
+  });
 });
 
 module.exports = router;

@@ -21,6 +21,11 @@ query{
     firstname
     lastname
     country
+    books {
+      id
+      title
+      description
+    }
   }
 }
 `;

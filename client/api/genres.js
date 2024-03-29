@@ -17,13 +17,18 @@ query{
   genre(id:"${id}"){
     id,
     label
+    books {
+      id
+      title
+      description
+    }
   }
 }
 `;
 
 const createQuery = (genre) => `
 mutation CreateGenre {
-  createAuthor(label: "${genre.label}") {
+  createGenre(label: "${genre.label}") {
     id,
     label
   }
@@ -110,7 +115,6 @@ const api = {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
-      console.log(data);
     } catch (error) {
       throw error;
     }

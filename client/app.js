@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
+var graphqlRouter = require('./routes/graphql');
 var booksRouter = require('./routes/books');
 var authorsRouter = require('./routes/authors');
 var genresRouter = require('./routes/genres');
@@ -22,6 +23,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
+app.use('/graphql', graphqlRouter);
 app.use('/books', booksRouter);
 app.use('/authors', authorsRouter);
 app.use('/genres', genresRouter);

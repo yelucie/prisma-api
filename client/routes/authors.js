@@ -21,24 +21,33 @@ router.post(
   body("firstname").trim(),
   body("lastname").trim(),
   body("country").trim(),
-  function (req, res, next) {
+  async function (req, res, next) {
     var newAuthor = {
       firstname: req.body.firstname,
       lastname: req.body.lastname,
       country: req.body.country,
     };
 
-    api.create(newAuthor);
-    res.redirect("/authors");
+    await api.create(newAuthor).then(() => {
+      res.redirect("/authors");
+    });
   }
 );
 
 /* GET a single author. */
 router.get("/:uuid", async function (req, res, next) {
   await api.findById(req.params.uuid).then((data) => {
+    var books = [];
+
+    // Check if the author has books
+    if(data.books.length !== 0) {
+      books = data.books;
+    }
+
     res.render("author", {
       title: `${data.firstname} ${data.lastname}`,
       author: data,
+      books: books
     });
   });
 });

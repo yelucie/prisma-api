@@ -19,22 +19,31 @@ router.get("/add", function (req, res, next) {
 router.post(
   "/add",
   body("label").trim(),
-  function (req, res, next) {
+  async function (req, res, next) {
     var newGenre = {
       label: req.body.label
     };
 
-    api.create(newGenre);
-    res.redirect("/genres");
+    await api.create(newGenre).then(() => {
+      res.redirect("/genres");
+    });
   }
 );
 
 /* GET a single genre. */
 router.get("/:uuid", async function (req, res, next) {
   await api.findById(req.params.uuid).then((data) => {
+    var books = [];
+
+    // Check if the author has books
+    if(data.books.length !== 0) {
+      books = data.books;
+    }
+
     res.render("genre", {
       title: `${data.label}`,
       genre: data,
+      books: books
     });
   });
 });
@@ -65,8 +74,9 @@ router.post(
       label: req.body.label,
     };
 
-    await api.update(updatedAuthor);
-    res.redirect("/genres");
+    await api.update(updatedAuthor).then(() => {
+      res.redirect("/genres");
+    });
   }
 );
 
