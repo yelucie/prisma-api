@@ -1,9 +1,9 @@
 var express = require('express');
 var router = express.Router();
 
-/* GET graphQL demo page. */
+/* GET graphQL page. */
 router.get('/', function(req, res, next) {
-  res.render('graphql', { title: 'CRUD operations' });
+  res.render('graphql', { title: 'GraphQL operations' });
 });
 
 module.exports = router;
